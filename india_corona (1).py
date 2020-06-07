@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[433]:
+# In[1]:
 
 
 import folium
@@ -9,12 +9,13 @@ import pandas as pd
 import numpy as np
 from folium.features import Choropleth
 from folium.plugins import MarkerCluster
-import os
 import vincent, json
 from mpld3 import utils
+import requests
+import os
 
 
-# In[434]:
+# In[11]:
 
 
 #reading the data statewise
@@ -25,21 +26,40 @@ state=pd.read_csv("State_corona.csv")
 #strweb=str(webContent)
 html = requests.get('https://www.mohfw.gov.in/#').content
 df_list = pd.read_html(html)
-df_list[0]
 
 
-# In[435]:
+# In[12]:
 
 
 coordinates=(20.5937, 78.9629)
 map1=folium.Map(location=coordinates,zoom_start=4.5)
-cases_num=df_list[0]["Total Confirmed cases (Including 111 foreign Nationals)"]
-state
+cases_num=df_list[0]["Total Confirmed cases*"]
 
 
-# In[442]:
+# In[13]:
 
 
+labels=["Total Confirmed cases*","Cured/Discharged/Migrated","Death"]
+sizes=[df_list[0]["Total Confirmed cases*"][36],df_list[0]["Cured/Discharged/Migrated*"][36],df_list[0]["Deaths**"][36]]
+data={labels[0]:sizes[0],labels[1]:sizes[1],labels[2]:sizes[2]}
+a=vincent.Pie(data,width=500,height=300)
+a.legend("Covid 19 India")
+popup=folium.Popup(width=500,height=100)
+folium.Vega(a).add_to(popup)
+
+
+# In[14]:
+
+
+def popups(id):
+    labels=["Total Confirmed cases","Cured/Discharged/Migrated","Death"]
+    sizes=[df_list[0]["Total Confirmed cases*"][id],df_list[0]["Cured/Discharged/Migrated*"][id],df_list[0]["Deaths**"][id]]
+    data={labels[0]:sizes[0],labels[1]:sizes[1],labels[2]:sizes[2]}
+    a=vincent.Pie(data,width=500,height=300)
+    a.legend(state["Name"][i])
+    popup=folium.Popup(width=550,height=100)
+    folium.Vega(a).add_to(popup)
+    return popup
 htmls="""
 <html>
 <body align="center">
@@ -80,19 +100,19 @@ def htmlgen(id):
     <br>
     <p><h6>Total Confirmed cases: 
     """
-    htmls+=df_list[0]["Total Confirmed cases (Including 111 foreign Nationals)"][id]
+    htmls+=df_list[0]["Total Confirmed cases*"][id]
     htmls+="""
     </p>
     <br>
     <p>Cured/Discharged/Migrated:
     """
-    htmls+=df_list[0]["Cured/Discharged/Migrated"][id]
+    htmls+=df_list[0]["Cured/Discharged/Migrated*"][id]
     htmls+="""
     </p>
     <br>
     <p>Death:
     """
-    htmls+=df_list[0]["Death"][id]
+    htmls+=df_list[0]["Deaths**"][id]
     htmls+="""
     </p>
     </h6>
@@ -106,62 +126,24 @@ def htmlgen(id):
     </html>
     """
     return htmls
-def popups(id):
-    labels=["Total Confirmed cases","Cured/Discharged/Migrated","Death"]
-    sizes=[df_list[0]["Total Confirmed cases (Including 111 foreign Nationals)"][id],df_list[0]["Cured/Discharged/Migrated"][id],df_list[0]["Death"][id]]
-    data={labels[0]:sizes[0],labels[1]:sizes[1],labels[2]:sizes[2]}
-    a=vincent.Pie(data,width=500,height=300)
-    a.legend(state["Name"][i])
-    popup=folium.Popup(width=550,height=100)
-    folium.Vega(a).add_to(popup)
-    return popup
 
 
-# In[443]:
+# In[ ]:
 
 
-labels=["Total Confirmed cases (Including 111 foreign Nationals)","Cured/Discharged/Migrated","Death"]
-sizes=[df_list[0]["Total Confirmed cases (Including 111 foreign Nationals)"][32],df_list[0]["Cured/Discharged/Migrated"][32],df_list[0]["Death"][32]]
-data={labels[0]:sizes[0],labels[1]:sizes[1],labels[2]:sizes[2]}
-a=vincent.Pie(data,width=500,height=300)
-a.legend("Covid 19 India")
-popup=folium.Popup(width=500,height=100)
-folium.Vega(a).add_to(popup)
 
 
-# In[444]:
+
+# In[15]:
 
 
 #Now placing the markers on each of the location
 i=0
-while(i<32):
-    folium.Marker(location=[state["X "][i],state["Y"][i]],tooltip=htmlgen(i),popup=popups(i),clustered_marker=True).add_to(map1)
+while(i<35):
+    folium.Marker(location=[state["X"][i],state["Y"][i]],tooltip=htmlgen(i),popup=popups(i),clustered_marker=True).add_to(map1)
     i=i+1
 folium.Marker(location=coordinates,tooltip=htmls,popup=popup,icon=folium.Icon(color='darkgreen', icon='info-sign')).add_to(map1)
-map1.save("mm.html")
-map1
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
+iframe=map1._repr_html_()
+print(iframe)
 
 
