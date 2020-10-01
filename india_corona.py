@@ -142,7 +142,7 @@ i=0
 while(i<35):
     folium.Marker(location=[state["X"][i],state["Y"][i]],tooltip=htmlgen(i),popup=popups(i),clustered_marker=True).add_to(map1)
     i=i+1
-folium.Marker(location=coordinates,tooltip=htmls,popup=popup,icon=folium.Icon(color='darkgreen', icon='info-sign')).add_to(map1)
+folium.Marker(location=coordinates,tooltip=htmls,popup=popup,icon=folium.Icon(color='darkblue', icon='info-sign')).add_to(map1)
 iframe=map1._repr_html_()
 print(iframe)
 
